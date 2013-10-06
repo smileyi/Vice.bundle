@@ -4,7 +4,7 @@ ICON  = 'icon-default.png'
 
 HTTP_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/536.26.17 (KHTML, like Gecko) Version/6.0.2 Safari/536.26.17"
 
-BASE_URL = "http://www.vice.com"
+BASE_URL = "http://www.vice.com/en_us"
 
 ##########################################################################################
 def Start():
@@ -33,7 +33,7 @@ def MainMenu():
 	pageElement = HTML.ElementFromURL(BASE_URL + '/shows')
 	
 	# Add shows by parsing the site
-	for item in pageElement.xpath("//*[contains(@class, 'shows_grid_list')]//*[@class = 'story']"):
+	for item in pageElement.xpath("//*[contains(@class, 'shows_grid_list')]//*[contains(@class, 'story')]"):
 		show = {}
 		
 		try:
