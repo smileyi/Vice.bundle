@@ -8,13 +8,9 @@ BASE_URL = "http://www.vice.com/en_us"
 
 ##########################################################################################
 def Start():
-	Plugin.AddViewGroup("List", viewMode = "List", mediaType = "items")
-	Plugin.AddViewGroup("InfoList", viewMode = "InfoList", mediaType = "items")
-
 	# Setup the default attributes for the ObjectContainer
-	ObjectContainer.title1     = TITLE
-	ObjectContainer.view_group = "List"
-	ObjectContainer.art        = R(ART)
+	ObjectContainer.title1 = TITLE
+	ObjectContainer.art    = R(ART)
 
 	# Setup the default attributes for the other objects
 	DirectoryObject.thumb = R(ICON)
@@ -37,7 +33,11 @@ def MainMenu():
 		show = {}
 		
 		try:
-			show["url"]  = item.xpath(".//a/@href")[0]
+			show["url"] = item.xpath(".//a/@href")[0]
+			
+			if ' ' in show["url"]:
+				continue
+			
 			show["img"]  = item.xpath(".//img/@src")[0]
 			show["name"] = item.xpath(".//h2//a/text()")[0]
 			show["desc"] = item.xpath(".//p/text()")[0].strip()
@@ -45,7 +45,7 @@ def MainMenu():
 			oc.add(
 				DirectoryObject(
 					key = Callback(
-							Videos, 
+							Episodes, 
 							showTitle = show["name"], 
 							url = show["url"], 
 							thumb = show["img"]), 
@@ -65,31 +65,95 @@ def MainMenu():
 	return oc
 	
 ##########################################################################################
-@route("/video/vice/Videos")
-def Videos(showTitle, url, thumb):
+@route("/video/vice/Episodes")
+def Episodes(showTitle, url, thumb):
 	oc = ObjectContainer(title1 = showTitle)
 	
 	pageElement = HTML.ElementFromURL(BASE_URL + url)
 	
 	for item in pageElement.xpath("//*[contains(@class, 'story_list')]//*[@class = 'story']"):
-		video = {}
+		episode = {}
 		
 		try:
-			video["url"]  = BASE_URL + item.xpath(".//a/@href")[0]
-			video["img"]  = item.xpath(".//img/@src")[0]
-			video["name"] = item.xpath(".//h2//a/text()")[0]
-			video["desc"] = item.xpath(".//p/text()")[0].strip()
-
-			oc.add(
-				EpisodeObject(
-					url = video["url"],
-					title = video["name"],
-					show = showTitle,
-					summary = video["desc"],
-					thumb = video["img"])
-			)
+			link            = item.xpath(".//a/@href")[0]
+			episode["url"]  = BASE_URL + link
+			episode["img"]  = item.xpath(".//img/@src")[0]
+			episode["name"] = item.xpath(".//h2//a/text()")[0]
+			episode["desc"] = item.xpath(".//p/text()")[0].strip()
+			
+			if ('-part-' in link or '-episode' in link) and not ' part ' in episode["name"].lower():
+				oc.add(
+					DirectoryObject(
+						key =
+							Callback(
+								Parts,
+								showTitle = showTitle, 
+								url = episode["url"],
+								title = episode["name"],
+								thumb = episode["img"]
+							),
+						title = episode["name"],
+						thumb = episode["img"],
+						summary = episode["desc"]
+					)
+				)
+			else:
+				oc.add(
+					EpisodeObject(
+						url = episode["url"],
+						title = episode["name"],
+						show = showTitle,
+						summary = episode["desc"],
+						thumb = episode["img"]
+					)
+				)
 			
 		except:
 			pass
 			 
+	return oc
+
+##########################################################################################
+@route("/video/vice/Parts")
+def Parts(showTitle, url, title, thumb):
+	oc = ObjectContainer(title1 = showTitle)
+
+	pageElement = HTML.ElementFromURL(url)
+
+	try:
+		title = pageElement.xpath("//*[@class='episode-title']/text()")[0].strip()
+	except:
+		pass
+		
+	oc.add(
+		EpisodeObject(
+			url = url,
+			title = title,
+			show = showTitle,
+			thumb = thumb
+		)
+	)
+
+	for item in pageElement.xpath("//*[@class='related_videos']//*[@id='yw2']//*[@class='item']"):
+		part = {}
+		
+		try:
+			link         = item.xpath(".//a/@href")[0]
+			part["url"]  = BASE_URL + link
+			part["img"]  = item.xpath(".//img/@src")[0]
+			part["name"] = item.xpath(".//h3/text()")[0]
+
+			oc.add(
+				EpisodeObject(
+					url = part["url"],
+					title = part["name"],
+					show = showTitle,
+					thumb = part["img"]
+				)
+			)
+		except:
+			pass
+	
+	oc.objects.sort(key = lambda obj: obj.title)
+		
 	return oc
