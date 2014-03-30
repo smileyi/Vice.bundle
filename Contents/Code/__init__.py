@@ -40,7 +40,7 @@ def MainMenu():
 			
 			show["img"]  = item.xpath(".//img/@src")[0]
 			show["name"] = item.xpath(".//h2//a/text()")[0]
-			show["desc"] = item.xpath(".//p/text()")[0].strip()
+			show["desc"] = ''.join(item.xpath(".//p/text()")).strip()
 		
 			oc.add(
 				DirectoryObject(
@@ -79,7 +79,7 @@ def Episodes(showTitle, url, thumb):
 			episode["url"]  = BASE_URL + link
 			episode["img"]  = item.xpath(".//img/@src")[0]
 			episode["name"] = item.xpath(".//h2//a/text()")[0]
-			episode["desc"] = item.xpath(".//p/text()")[0].strip()
+			episode["desc"] = ''.join(item.xpath(".//p/text()")).strip()
 			
 			if ('-part-' in link or '-episode' in link) and not ' part ' in episode["name"].lower():
 				oc.add(
