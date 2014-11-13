@@ -37,13 +37,25 @@ def MainMenu():
             title = title
         )
     )
+
+    title = 'Featured Shows'
+    oc.add(
+        DirectoryObject(
+            key =
+                Callback(
+                    FeaturedShows,
+                    title = title
+                ),
+            title = title
+        )
+    )
     
     title = 'All Shows'
     oc.add(
         DirectoryObject(
             key =
                 Callback(
-                    Shows,
+                    AllShows,
                     title = title
                 ),
             title = title
@@ -108,8 +120,57 @@ def Latest(title):
     return oc
 
 ##########################################################################################
-@route("/video/vice/Shows")
-def Shows(title):
+@route("/video/vice/FeaturedShows")
+def FeaturedShows(title):
+    oc = ObjectContainer(title2 = title)
+    
+    pageElement = HTML.ElementFromURL(BASE_URL + '/en_us/shows')
+    
+    for item in pageElement.xpath("//*[contains(@class, 'featured-shows')]//*[contains(@class, 'items-container')]//*[@class = 'item']"):
+        link = item.xpath(".//a[contains(@href,'/series/')]/@href")
+        
+        if not link:
+            continue
+        else:
+            link = link[0]
+            
+        if not link.startswith('http'):
+            link = BASE_URL + link
+            
+        title = ''.join(item.xpath(".//*[@class='title-container']//text()")).strip() 
+
+        try:
+            thumb = 'http:' + item.xpath(".//noscript//img/@src")[0] 
+        except:
+            try:
+                thumb = 'http:' + item.xpath(".//*[@class='image-container']//img/@src")[0]
+            except:
+                thumb = R(ICON)
+        
+        try:
+            summary = item.xpath(".//*[@class='item-description']/text()")[0].strip()
+        except:
+            summary = None
+            
+        oc.add(
+            DirectoryObject(
+                key = 
+                    Callback(
+                        Episodes, 
+                        showTitle = title, 
+                        url = link
+                    ), 
+                title = title,
+                thumb = thumb,
+                summary = summary
+            )
+        )
+        
+    return oc
+
+##########################################################################################
+@route("/video/vice/AllShows")
+def AllShows(title):
     oc = ObjectContainer(title2 = title)
     
     pageElement = HTML.ElementFromURL(BASE_URL + '/en_us/shows')
