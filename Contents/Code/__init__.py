@@ -26,6 +26,92 @@ def Start():
 def MainMenu():
     oc = ObjectContainer()
     
+    title = 'Latest Videos'
+    oc.add(
+        DirectoryObject(
+            key =
+                Callback(
+                    Latest,
+                    title = title
+                ),
+            title = title
+        )
+    )
+    
+    title = 'All Shows'
+    oc.add(
+        DirectoryObject(
+            key =
+                Callback(
+                    Shows,
+                    title = title
+                ),
+            title = title
+        )
+    )
+    
+    return oc
+
+##########################################################################################
+@route("/video/vice/Latest")
+def Latest(title):
+    oc = ObjectContainer(title2 = title)
+    
+    data = JSON.ObjectFromURL('http://www.vice.com/en_us/ajax/getlatestvideos?limit=50')
+    
+    for item in data['items']:
+        url = BASE_URL + item['url']
+        title = item['info']['title']
+        
+        try:
+            thumb = 'http://assets2.vice.com/%s%s' % (item['info']['image_path'], item['info']['image_file_name'])
+        except:
+            thumb = R(ICON)
+            
+        summary = item['excerpt']
+        
+        try:
+            originally_available_at = Datetime.ParseDate(item['publish_date'].split(" ")[0]).date()
+        except:
+            originally_available_at = None
+            
+        try:
+            show = item['series']['title']
+        except:
+            show = None
+            
+        try:
+            index = int(item['info']['episode_number'])
+        except:
+            index = None
+            
+        try:
+            duration = (int(item['video_duration_visual'].split(":")[0]) * 60 + int(item['video_duration_visual'].split(":")[1])) * 1000
+        except:
+            duration = None
+        
+        
+        oc.add(
+            EpisodeObject(
+                url = url,
+                title = title,
+                thumb = thumb,
+                summary = summary,
+                originally_available_at = originally_available_at,
+                show = show,
+                index = index,
+                duration = duration
+                
+            )
+        )
+        
+    return oc
+
+##########################################################################################
+@route("/video/vice/Shows")
+def Shows(title):
+    oc = ObjectContainer(title2 = title)
+    
     pageElement = HTML.ElementFromURL(BASE_URL + '/en_us/shows')
     
     # Add shows by parsing the site
@@ -70,7 +156,12 @@ def Episodes(showTitle, url):
     pageElement = HTML.ElementFromURL(url)
     
     for item in pageElement.xpath("//*[contains(@class, 'items-container')]//*[@class = 'item']"): 
-        link = item.xpath(".//a/@href")[0]
+        link = item.xpath(".//a[contains(@href,'/video/')]/@href")
+        
+        if not link:
+            continue
+        else:
+            link = link[0]
         
         if not link.startswith('http'):
             link = BASE_URL + link
@@ -78,9 +169,12 @@ def Episodes(showTitle, url):
         title = item.xpath(".//*[@class='item-title']//a/text()")[0].strip()
         
         try:
-            thumb = 'http:' + item.xpath(".//noscript//img/@src")[0]
+            thumb = 'http:' + item.xpath(".//noscript//img/@src")[0] 
         except:
-            thumb = R(ICON)
+            try:
+                thumb = 'http:' + item.xpath(".//*[@class='image-container']//img/@src")[0]
+            except:
+                thumb = R(ICON)
         
         try:
             summary = item.xpath(".//*[@class='item-description']//a/text()")[0].strip()
@@ -98,7 +192,7 @@ def Episodes(showTitle, url):
         except:
             duration = None
         
-        if ('-part-' in link or '-episode' in link) and not ' part ' in title.lower():
+        if ('-part-' in link or '-episode' in link) and not ' part ' in title.lower() and not 'episode' in title.lower() and not 'special' in title.lower():
             oc.add(
                 DirectoryObject(
                     key =
