@@ -1,6 +1,6 @@
 TITLE = 'VICE'
 ART   = 'art-default.jpg'
-ICON  = 'icon-default.png'
+ICON  = 'icon-default.jpg'
 
 HTTP_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/536.26.17 (KHTML, like Gecko) Version/6.0.2 Safari/536.26.17"
 
