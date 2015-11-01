@@ -140,12 +140,9 @@ def FeaturedShows(title):
         title = ''.join(item.xpath(".//*[@class='title-container']//text()")).strip() 
 
         try:
-            thumb = 'http:' + item.xpath(".//noscript//img/@src")[0] 
+            thumb = item.xpath(".//img/@data-sources")[0]
         except:
-            try:
-                thumb = 'http:' + item.xpath(".//*[@class='image-container']//img/@src")[0]
-            except:
-                thumb = R(ICON)
+            thumb = R(ICON)
         
         try:
             summary = item.xpath(".//*[@class='item-description']/text()")[0].strip()
@@ -158,7 +155,8 @@ def FeaturedShows(title):
                     Callback(
                         Episodes, 
                         showTitle = title, 
-                        url = link
+                        url = link,
+                        art = thumb
                     ), 
                 title = title,
                 thumb = thumb,
@@ -194,7 +192,8 @@ def AllShows(title):
                         Callback(
                             Episodes, 
                             showTitle = title, 
-                            url = url
+                            url = url,
+                            art = None
                         ), 
                     title = title
                 )
@@ -211,7 +210,7 @@ def AllShows(title):
     
 ##########################################################################################
 @route("/video/vice/Episodes")
-def Episodes(showTitle, url):
+def Episodes(showTitle, url, art):
     oc = ObjectContainer(title2 = showTitle)
     
     pageElement = HTML.ElementFromURL(url)
@@ -230,13 +229,13 @@ def Episodes(showTitle, url):
         title = item.xpath(".//*[@class='item-title']//a/text()")[0].strip()
         
         try:
-            thumb = 'http:' + item.xpath(".//noscript//img/@src")[0] 
+            thumb = item.xpath(".//img/@data-sources")[0]
         except:
             try:
-                thumb = 'http:' + item.xpath(".//*[@class='image-container']//img/@src")[0]
+                thumb = item.xpath(".//img/@src")[0]
             except:
                 thumb = R(ICON)
-        
+            
         try:
             summary = item.xpath(".//*[@class='item-description']//a/text()")[0].strip()
         except:
@@ -263,11 +262,13 @@ def Episodes(showTitle, url):
                             url = link,
                             title = title,
                             thumb = thumb,
-                            summary = summary
+                            summary = summary,
+                            art = art
                         ),
                     title = title,
                     thumb = thumb,
-                    summary = summary
+                    summary = summary,
+                    art = art
                 )
             )
         else:
@@ -278,6 +279,7 @@ def Episodes(showTitle, url):
                     show = showTitle,
                     summary = summary,
                     thumb = thumb,
+                    art = art,
                     originally_available_at = originally_available_at,
                     duration = duration
                 )
@@ -287,7 +289,7 @@ def Episodes(showTitle, url):
 
 ##########################################################################################
 @route("/video/vice/Parts")
-def Parts(showTitle, url, title, thumb, summary):
+def Parts(showTitle, url, title, thumb, summary, art):
     oc = ObjectContainer(title2 = showTitle)
 
     pageElement = HTML.ElementFromURL(url)
@@ -314,7 +316,8 @@ def Parts(showTitle, url, title, thumb, summary):
                 title = title,
                 show = showTitle,
                 thumb = thumb,
-                summary = summary
+                summary = summary,
+                art = art
             )
         )
         
