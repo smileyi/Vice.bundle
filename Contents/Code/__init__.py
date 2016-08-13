@@ -4,7 +4,7 @@ ICON = 'icon-default.jpg'
 
 HTTP_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/536.26.17 (KHTML, like Gecko) Version/6.0.2 Safari/536.26.17'
 
-BASE_URL = 'https://www.vice.com'
+BASE_URL = 'http://www.vice.com'
 
 ####################################################################################################
 def Start():
@@ -38,7 +38,7 @@ def Latest(title):
 
     oc = ObjectContainer(title2=title)
 
-    data = GetData('https://www.vice.com/en_us/ajax/getlatestvideos?limit=50')
+    data = GetData('http://www.vice.com/en_us/ajax/getlatestvideos?limit=50')
     data = JSON.ObjectFromString(data)
 
     for item in data['items']:
@@ -47,7 +47,7 @@ def Latest(title):
         title = item['info']['title']
 
         try:
-            thumb = 'https://assets2.vice.com/%s%s' % (item['info']['image_path'], item['info']['image_file_name'])
+            thumb = 'http://assets2.vice.com/%s%s' % (item['info']['image_path'], item['info']['image_file_name'])
         except:
             thumb = R(ICON)
 
@@ -307,16 +307,6 @@ def Parts(showTitle, url, title, thumb, summary, art):
 def GetData(url):
 
     try:
-        data = HTTP.Request(url).content
+        return HTTP.Request(url).content
     except:
-        if 'news.vice.com' in url:
-            url = 'https://plex.sa.nderspi.es/vice-news/%s' % (url.split('news.vice.com/', 1)[-1])
-        else:
-            url = 'https://plex.sa.nderspi.es/vice/%s' % (url.split('vice.com/', 1)[-1])
-
-        try:
-            data = HTTP.Request(url).content
-        except:
-            raise Ex.MediaNotAvailable
-
-    return data
+        raise Ex.MediaNotAvailable
